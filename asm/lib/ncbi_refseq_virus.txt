@@ -1,0 +1,5 @@
+viral.1.1.genomic.fna.gz
+viral.1.protein.faa.gz
+viral.2.1.genomic.fna.gz
+viral.2.protein.faa.gz
+viral.nonredundant_protein.1.protein.faa.gz
