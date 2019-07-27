@@ -4,19 +4,21 @@ use warnings;
 use Bio::SeqIO;
 use File::Spec;
 
-my $eslfetch = `which esl-sfetch`;
-unless ( -x $eslfetch ) {
+my $sfetch = `which esl-sfetch`;
+chomp($sfetch);
+unless ( $sfetch && -x $sfetch ) {
     die("make sure you have loaded hmmer/3 so that esl-sfetch in path");
 }
+
 my $dir = 'blobOut';
-my $query_col = 6;
+my $query_col = 5;
 my $query = 'Viruses';
 my $genomedir = 'genomes';
-my $genomeext = 'vecclean_shovill.fasta';
-my $dir = 'blobOut';
-my $outdir = 'virsus_search';
+my $genomeext = 'vecscreen_shovill.fasta';
+
+my $outdir = 'virus_search';
 mkdir($outdir) unless -d $outdir;
-my $outseq = Bio::Seq->new(-format => 'fasta',
+my $outseq = Bio::SeqIO->new(-format => 'fasta',
 			   -file   => ">".File::Spec->catfile($outdir,
 							      'virus_DNA_hits.fasta'));
 opendir(my $od => $dir) || die $!;
@@ -28,19 +30,21 @@ foreach my $file ( readdir($od) ) {
 	next if /^\#/;
 	chomp;
 	my @row = split(/\t/,$_);
-	my ($name,$target) = ($row[0],$row[$query_col]);
-	print join("\t",$stem,$name,$target),"\n";
+	my ($ctgname,$target) = ($row[0],$row[$query_col]);
 	if ( $target =~ /$query/) {
+	    print join("\t",$stem,$ctgname,$target),"\n";
 	    my $genomefile = File::Spec->catfile($genomedir,
 						 sprintf("%s.%s",$stem,$genomeext));
 	    if ( ! -f "$genomefile.ssi") {
-		`$eslsfetch --index $genomefile`;
+		`$sfetch --index '$genomefile'`;
 	    }
-	    open(my $fasta => "$eslsfetch $genomefile $target |") || die $!;
+	    open(my $fasta => "$sfetch '$genomefile' $ctgname |") || die $!;
 	    my $seqin = Bio::SeqIO->new(-fh => $fasta,
 					-format => 'fasta');
 	    while ( my $seq = $seqin->next_seq ) {
-		$seq->display_id(sprintf("%s_%s",$stem,$seq->display_id));
+		my $st = $stem;
+		$st =~ s/[\(\)]/_/g;
+		$seq->display_id(sprintf("%s_%s",$st,$seq->display_id));
 		$outseq->write_seq($seq);
 	    }		
 	}
