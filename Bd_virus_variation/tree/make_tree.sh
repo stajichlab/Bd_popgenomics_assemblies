@@ -6,4 +6,4 @@ module load IQ-TREE
 if [ ! -f virus_haplotypes.haploid.fasaln ]; then
 	ln -s ../virus_haplotypes.haploid.fasaln .
 fi
-iqtree -s virus_haplotypes.haploid.fasaln -nt 1
+iqtree -s virus_haplotypes.haploid.fasaln -nt 1 -bb 1000 -alrt 1000
