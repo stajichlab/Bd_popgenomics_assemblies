@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes 1 --ntasks 16 --mem 48gb -J shovill --out logs/shovill.%a.log -p intel --time 64:00:00
 source ~/.bashrc
+module load AAFTF
 hostname
 MEM=48
 CPU=$SLURM_CPUS_ON_NODE
@@ -14,10 +15,10 @@ if [ ! $N ]; then
     fi
 fi
 
-module load AAFTF
 
 INPUT=input
 SAMPLEFILE=samples.dat
+PHYLUM=Chytridiomycota
 PREFIX=$(sed -n ${N}p $SAMPLEFILE | cut -f1)
 BASE=$(sed -n ${N}p $SAMPLEFILE | cut -f2)
 ASM=genomes
@@ -37,18 +38,18 @@ PURGE=$ASM/${BASE}.sourpurge_shovill.fasta
 CLEANDUP=$ASM/${BASE}.rmdup_shovill.fasta
 PILON=$ASM/${BASE}.pilon_shovill.fasta
 SORTED=$ASM/${BASE}.sorted_shovill.fasta
-STATS=$ASM/${BASE}.sorted_shovill.stats.txt
+STATS2=$ASM/${BASE}.sorted_shovill.stats.txt
 STATS=$ASM/${BASE}.vecclean_shovill.stats.txt
 
-#LEFT=$INPUT/${PREFIX}_1.fastq.gz
-#RIGHT=$INPUT/${PREFIX}_2.fastq.gz
+LEFTORIG=$INPUT/${PREFIX}_1.fastq.gz
+RIGHTORIG=$INPUT/${PREFIX}_2.fastq.gz
 LEFT=$WORKDIR/${PREFIX}_filtered_1.fastq.gz
 RIGHT=$WORKDIR/${PREFIX}_filtered_2.fastq.gz
 
 mkdir -p $WORKDIR
 
 echo "$BASE"
-if [ ! -f $ASMFILE ]; then    
+if [[ ! -f $ASMFILE && ! -f $ASMFILE.bz2 ]]; then    
     if [ ! -f $LEFT ]; then
 	echo "Cannot find LEFT $LEFT or RIGHT $RIGHT - did you run"
 	echo "$OUTDIR/${BASE}_R1.fq.gz $OUTDIR/${BASE}_R2.fq.gz"
@@ -57,7 +58,7 @@ if [ ! -f $ASMFILE ]; then
     module unload miniconda2
     module load miniconda3
     module unload perl
-    conda activate shovill
+    source activate shovill
 
     shovill --cpu $CPU --ram $MEM --outdir $WORKDIR/shovill_${BASE} \
 	--R1 $LEFT --R2 $RIGHT --depth 90 --tmpdir $TMPDIR --minlen $MINLEN --nocorr
@@ -65,7 +66,7 @@ if [ ! -f $ASMFILE ]; then
     if [ -f $WORKDIR/shovill_${BASE}/contigs.fa ]; then
 	rsync -av $WORKDIR/shovill_${BASE}/contigs.fa $ASMFILE
     else	
-	echo "Cannot find $OUTDIR/shovill_${BASE}/contigs.fa"
+	echo "Cannot find $WORKDIR/shovill_${BASE}/contigs.fa"
     fi
     conda deactivate 
     
@@ -78,15 +79,17 @@ if [ ! -f $ASMFILE ]; then
 fi
 
 if [ ! -f $VECCLEAN ]; then
+	if [[ -f $ASMFILE.bz2 && ! -f $ASMFILE ]]; then
+		pbzip2 -k $ASMFILE.bz2
+	fi
     AAFTF vecscreen -i $ASMFILE -c $CPU -o $VECCLEAN 
 fi
 if [ ! -f $STATS ]; then
 	AAFTF assess -i $VECCLEAN -r $STATS
 fi
-exit
 
 if [ ! -f $PURGE ]; then
-    AAFTF sourpurge -i $VECCLEAN -o $PURGE -c $CPU --phylum $PHYLUM --left $LEFT  --right $RIGHT
+    AAFTF sourpurge -i $VECCLEAN -o $PURGE -c $CPU --phylum $PHYLUM --left $LEFTORIG  --right $RIGHTORIG
 fi
 
 if [ ! -f $CLEANDUP ]; then
@@ -94,7 +97,7 @@ if [ ! -f $CLEANDUP ]; then
 fi
 
 if [ ! -f $PILON ]; then
-   AAFTF pilon -i $CLEANDUP -o $PILON -c $CPU --left $LEFT  --right $RIGHT 
+   AAFTF pilon -i $CLEANDUP -o $PILON -c $CPU --left $LEFTORIG  --right $RIGHTORIG
 fi
 
 if [ ! -f $PILON ]; then
@@ -106,6 +109,6 @@ if [ ! -f $SORTED ]; then
     AAFTF sort -i $PILON -o $SORTED
 fi
 
-if [ ! -f $STATS ]; then
-    AAFTF assess -i $SORTED -r $STATS
+if [ ! -f $STATS2 ]; then
+    AAFTF assess -i $SORTED -r $STATS2
 fi

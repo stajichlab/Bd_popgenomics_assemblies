@@ -20,7 +20,7 @@ module load AAFTF
 OUTDIR=input
 SAMPLEFILE=samples.dat
 BASE=$(sed -n ${N}p $SAMPLEFILE | cut -f1)
-PHYLUM=$(sed -n ${N}p $SAMPLEFILE | cut -f2)
+NAME=$(sed -n ${N}p $SAMPLEFILE | cut -f2)
 ASM=genomes
 
 mkdir -p $ASM
@@ -29,11 +29,10 @@ if [ -z $CPU ]; then
     CPU=1
 fi
 
-ASMFILE=$ASM/${BASE}.spades.fasta
+ASMFILE=$ASM/${BASE}.shovill_spades.fasta
 WORKDIR=working_AAFTF
-VECCLEAN=$ASM/${BASE}.vecscreen.fasta
-SORTED=$ASM/${BASE}.sorted.fasta
-STATS=$ASM/${BASE}.sorted.stats.txt
+SORTED=$ASM/${BASE}.shovill_sorted.fasta
+STATS=$ASM/${BASE}.shovill_sorted.stats.txt
 LEFTTRIM=$WORKDIR/${BASE}_1P.fastq.gz
 RIGHTTRIM=$WORKDIR/${BASE}_2P.fastq.gz
 
@@ -43,7 +42,7 @@ RIGHT=$WORKDIR/${BASE}_filtered_2.fastq.gz
 mkdir -p $WORKDIR
 
 echo "$BASE"
-if [[ ! -f $ASMFILE || ! -f $SORTED ]]; then    
+if [[ ! -f $ASMFILE && ! -f $ASMFILE.bz2 && ! -f $SORTED ]]; then    
     if [ ! -f $LEFT ]; then
 	echo "$OUTDIR/${BASE}_R1.fq.gz $OUTDIR/${BASE}_R2.fq.gz"
 	if [ ! -f $LEFTTRIM ]; then
