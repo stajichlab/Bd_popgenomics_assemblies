@@ -93,7 +93,7 @@ if [ ! -f $PURGE ]; then
 fi
 
 if [ ! -f $CLEANDUP ]; then
-   AAFTF rmdup -i $PURGE -o $CLEANDUP -c $CPU -m 1000
+   AAFTF rmdup -i $PURGE -o $CLEANDUP -c $CPU -m 500
 fi
 
 if [ ! -f $PILON ]; then
