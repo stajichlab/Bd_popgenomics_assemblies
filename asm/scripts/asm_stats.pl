@@ -15,7 +15,7 @@ my %header_seen;
 opendir(DIR,$dir) || die $!;
 my $first = 1;
 foreach my $file ( readdir(DIR) ) {
-    next unless ( $file =~ /(\S+)\.stats.txt$/);
+    next unless ( $file =~ /(\S+)\.sorted_shovill.stats.txt$/);
     my $stem = $1;
     $stem =~ s/\.sorted//;
     open(my $fh => "$dir/$file") || die $!;
@@ -41,9 +41,10 @@ foreach my $file ( readdir(DIR) ) {
                  );
     }
 
-
-    my $busco_file = File::Spec->catfile("BUSCO",sprintf("run_%s",$stem),
-					 sprintf("short_summary_%s.txt",$stem));
+    my $buscostem = $stem;
+    $buscostem =~ s/[\(\)]//g; 
+    my $busco_file = File::Spec->catfile("BUSCO",sprintf("run_%s",$buscostem),
+					 sprintf("short_summary_%s.txt",$buscostem));
 
     if ( -f $busco_file ) {
 
@@ -64,7 +65,7 @@ foreach my $file ( readdir(DIR) ) {
     }
 
     my $sumstatfile = File::Spec->catfile($read_map_stat,
-				      sprintf("%s.bbmap_summary.txt",$stem));
+				      sprintf("%s.bbmap_summary.txt",$buscostem));
     if ( -f $sumstatfile ) {
 	open(my $fh => $sumstatfile) || die "Cannot open $sumstatfile: $!";
 	my $read_dir = 0;
@@ -74,9 +75,10 @@ foreach my $file ( readdir(DIR) ) {
 	    if( /Read (\d+) data:/) {
 		$read_dir = $1;
 	    } elsif( $read_dir && /^mapped:\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+)/) {
+		$stats{$stem}->{'Percent_reads_mapped'} = $1;
 		$base_count += $4;
 		$stats{$stem}->{'Mapped_reads'} += $2;
-	    }  elsif( /^Reads:\s+(\S+)/) {
+	    }  elsif( /^Reads Used:\s+(\S+)/) {
 		$stats{$stem}->{'Reads'} = $1;
 	    }
 	    
@@ -86,6 +88,7 @@ foreach my $file ( readdir(DIR) ) {
 
 	if( $first )  {
 	    push @header, ('Reads',
+		    	   'Percent_reads_mapped',
 			   'Mapped_reads',			   
 			   'Average_Coverage');
 	}
