@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import  urllib.request, csv, sys, warnings,re
-import codecs
+import codecs, time
 urlbase="https://www.uniprot.org/uniprot/?query={}&sort=score&columns=id,entry%20name,reviewed,organism,genes(PREFERRED),genes,protein%20names&format=tab&limit=1"
 if len(sys.argv) < 2:
     print("No file argument")
@@ -11,6 +11,7 @@ pat = re.compile(r'^(.+?)\s+\(')
 with open(file,'r') as genes:
     dat = csv.reader(genes,delimiter="\t")
     for line in dat:
+        time.sleep(5)
         if line[0].startswith("#"):
             continue
         url=urlbase.format(line[0])
