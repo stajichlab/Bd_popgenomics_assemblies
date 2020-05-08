@@ -16,9 +16,9 @@ do
     RESULT=$OUTDIR/BdVirus.$ploidy.vcf.gz
     FILTERED=$OUTDIR/BdVirus.$ploidy.filtered.vcf.gz
     if [ $ploidy == "haploid" ]; then
-	bcftools mpileup -Ou -f $GENOME $INDIR/*.bam | bcftools call --ploidy 1 -vmO z -o $RESULT
+			bcftools mpileup -Ou -f $GENOME $INDIR/*.bam | bcftools call --ploidy 1 -vmO z -o $RESULT
     else
-	bcftools mpileup -Ou -f $GENOME $INDIR/*.bam | bcftools call -vmO z -o $RESULT
+			bcftools mpileup -Ou -f $GENOME $INDIR/*.bam | bcftools call -vmO z -o $RESULT
     fi
     tabix -p vcf $RESULT
     bcftools stats -F $GENOME -s - $RESULT > $RESULT.stats
