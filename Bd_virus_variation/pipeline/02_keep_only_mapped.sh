@@ -4,10 +4,18 @@ CPU=$SLURM_CPUS_ON_NODE
 if [ -z $CPU ]; then
 	CPU=1
 fi
-module load samtools
+module load samtools/1.10
 module load parallel
 module unload perl
-mkdir -p mapped
+#GENOME=genome/assembled_TF5a1.fa
+GENOME=genome/Bd_genome_w_virus.fa
+CHROM=genome/Bd_genome_w_virus.chroms.bed
+COV=coverage
+MAP=mapped
+IN=aln
+mkdir -p $MAP $COV
+parallel -j $CPU [[ ! -f {}.crai ]] \&\& samtools index {} ::: $IN/*.cram
+parallel -j $CPU [[ ! -f $MAP/{/.}.bam ]] \&\& samtools view --threads 2 -O bam -o $MAP/{/.}.bam --reference $GENOME -F 4 {} TF5a1_Bdvirus ::: $IN/*.cram
+parallel -j $CPU [[ ! -f {}.bai ]] \&\& samtools index {} ::: $MAP/*.bam
+parallel -j $CPU [[ ! -f $COV/{.}.regions.bed.gz ]] \&\& mosdepth -f $GENOME -x -n --by $CHROM $COV/{/.} {} ::: $IN/*.cram
 
-#parallel -j $CPU samtools view --threads 2 -O bam -o mapped/{/.}.bam --reference genome/assembled_TF5a1.fa -F 4 {} ::: aln/*.cram
-parallel -j $CPU samtools index {} ::: mapped/*.bam

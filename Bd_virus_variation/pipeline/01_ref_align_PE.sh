@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #SBATCH -p short -n 24 --mem 16gb --out logs/bwa_PE.%a.log -N 1
 
-module load samtools/1.9
+module load samtools/1.10
 module load bwa
 module load bam2fastq
 
@@ -18,9 +18,10 @@ fi
 
 INDIR=input_PE
 OUT=aln
-SAMPLEFILE=strains_PE.txt
+SAMPLEFILE=strains_PE_all.txt
 TEMP=/scratch
-REF=genome/assembled_TF5a1.fa
+#REF=genome/assembled_TF5a1.fa
+REF=genome/Bd_genome_w_virus.fa
 
 if [ ! -f $REF.bwt ]; then
     bwa index $REF
