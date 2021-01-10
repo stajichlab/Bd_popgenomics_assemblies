@@ -12,7 +12,8 @@ fi
 VCFDIR=vcf
 HAPLOTYPES=virus_haplotypes
 mkdir -p $HAPLOTYPES
-GENOME=genome/assembled_TF5a1.fa
+GENOME=genome/Bd_genome_w_virus.fa
+
 for ploidy in haploid diploid
 do
     FILTERED=$VCFDIR/BdVirus.$ploidy.filtered.vcf.gz
@@ -20,7 +21,8 @@ do
     bcftools index -f $VCFDIR/BdVirus.$ploidy.norm.vcf.gz
     for strain in $(bcftools query -l $VCFDIR/BdVirus.$ploidy.norm.vcf.gz);
     do
-		strainout=$(basename $strain .bam)
+		   strainout=$(basename $strain .bam)
+       echo "$strainout"
 	     bcftools consensus -f $GENOME --haplotype A --sample $strain $VCFDIR/BdVirus.$ploidy.norm.vcf.gz | perl -p -e "s/>/>$strainout /" > $HAPLOTYPES/$strainout.$ploidy.fa
      done
      cat virus_haplotypes/*.$ploidy.fa > virus_haplotypes.$ploidy.fa
