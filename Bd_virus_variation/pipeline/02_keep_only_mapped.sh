@@ -7,6 +7,7 @@ fi
 module load samtools/1.10
 module load parallel
 module unload perl
+module load mosdepth
 #GENOME=genome/assembled_TF5a1.fa
 GENOME=genome/Bd_genome_w_virus.fa
 CHROM=genome/Bd_genome_w_virus.chroms.bed
@@ -17,5 +18,5 @@ mkdir -p $MAP $COV
 parallel -j $CPU [[ ! -f {}.crai ]] \&\& samtools index {} ::: $IN/*.cram
 parallel -j $CPU [[ ! -f $MAP/{/.}.bam ]] \&\& samtools view --threads 2 -O bam -o $MAP/{/.}.bam --reference $GENOME -F 4 {} TF5a1_Bdvirus ::: $IN/*.cram
 parallel -j $CPU [[ ! -f {}.bai ]] \&\& samtools index {} ::: $MAP/*.bam
-parallel -j $CPU [[ ! -f $COV/{.}.regions.bed.gz ]] \&\& mosdepth -f $GENOME -x -n --by $CHROM $COV/{/.} {} ::: $IN/*.cram
+parallel -j $CPU [[ ! -f $COV/{.}.regions.bed.gz ]] \&\& mosdepth -t 2 -f $GENOME -x -n --by $CHROM $COV/{/.} {} ::: $IN/*.cram
 

@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-#SBATCH -p short -n 24 --mem 16gb --out logs/bwa_PE.%a.log -N 1
+#SBATCH -p short -n 24 --mem 64gb --out logs/bwa_PE.%a.log -N 1
 
 module load samtools/1.10
 module load bwa
